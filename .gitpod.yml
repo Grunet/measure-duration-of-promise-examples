@@ -1,2 +1,2 @@
 tasks:
-  - init: echo "test"
+  - init: curl https://get.volta.sh | bash
