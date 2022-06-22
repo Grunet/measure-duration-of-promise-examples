@@ -23,11 +23,20 @@ const asyncHook =
 asyncHook.enable();
 
 asyncLocalStorage.run(new Map(), async () => {
-    await fetch("https://httpbin.org/get"); //This requires node 18 to work without dependencies
+    globalThis.blah = asyncLocalStorage.getStore();
+
+    await Promise.resolve().then(() => {
+        // console.log("adfasdfasfd")
+        return fetch("https://httpbin.org/get").then(() => { });
+    })
 });
 
 // Disable listening for new asynchronous events.
 asyncHook.disable();
+
+setTimeout(() => {
+    console.log(globalThis.blah);
+}, 1000);
 
 //
 // The following are the callbacks that can be passed to createHook().
@@ -48,22 +57,31 @@ function init(asyncId, type, triggerAsyncId, resource) {
 // Before is called just before the resource's callback is called. It can be
 // called 0-N times for handles (such as TCPWrap), and will be called exactly 1
 // time for requests (such as FSReqCallback).
-function before(asyncId) { }
+function before(asyncId) {
+
+    //From the doc page
+    // ther subtlety with promises is that before and after callbacks are run only on chained promises. That means promises not created by then()/catch() will not have the before and after callbacks fired on them. For more details see the details of the V8 PromiseHooks API.
+    //Which is why the random Promise.resolve is needed
+}
 
 // After is called just after the resource's callback has finished.
 function after(asyncId) {
-    console.log("Whaaa?"); //This should blow up the callstack per https://nodejs.org/api/async_hooks.html#printing-in-asynchook-callbacks but nothing is happening...
-    const asyncIdToTimestampsMap = asyncLocalStorage.getStore();
-    const startInstant = asyncIdToTimestampsMap.get(asyncId)?.startInstant;
-    console.log(performance.now() - startInstant);
+    //This never seems to get hit with the "await fetch" example 
 }
 
 // Destroy is called when the resource is destroyed.
-function destroy(asyncId) { }
+function destroy(asyncId) {
+}
 
 // promiseResolve is called only for promise resources, when the
 // `resolve` function passed to the `Promise` constructor is invoked
 // (either directly or through other means of resolving a promise).
 function promiseResolve(asyncId) {
-    //This never seems to get hit with the "await fetch" example
+    console.log("Whaaa?"); //This should blow up the callstack per https://nodejs.org/api/async_hooks.html#printing-in-asynchook-callbacks but nothing is happening...
+    const asyncIdToTimestampsMap = asyncLocalStorage.getStore();
+    // const startInstant = asyncIdToTimestampsMap.get(asyncId)?.startInstant;
+    // console.log(performance.now() - startInstant);
+    if (asyncIdToTimestampsMap.get(asyncId)) {
+        asyncIdToTimestampsMap.get(asyncId).endInstant = performance.now(); //The numbers this is generating say the fetch is taking 3ms, which seems wrong...
+    }
 }
