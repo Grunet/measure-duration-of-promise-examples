@@ -10,5 +10,5 @@ const stopWatchingSettleds = promiseHooks.onSettled(function (promise) {
 });
 
 console.log("BEFORE");
-await fetch("https://httpbin.org/get");
+await fetch("https://httpbin.org/get"); //This requires node 18 to work without dependencies
 console.log("AFTER");
