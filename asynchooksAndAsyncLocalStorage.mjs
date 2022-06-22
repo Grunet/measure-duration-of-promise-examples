@@ -23,20 +23,16 @@ const asyncHook =
 asyncHook.enable();
 
 asyncLocalStorage.run(new Map(), async () => {
-    globalThis.blah = asyncLocalStorage.getStore();
-
-    return await Promise.resolve().then(() => {
+    await Promise.resolve().then(() => {
         console.log(performance.now())
-        return fetch("https://httpbin.org/get").then(() => { console.log(performance.now()) });
-    })
+        return (new Promise((res) => { setTimeout(() => { res('foo') }, 1000) })).then(() => { console.log(performance.now()) });
+    });
+
+    console.log(asyncLocalStorage.getStore());
 });
 
 // Disable listening for new asynchronous events.
 asyncHook.disable();
-
-setTimeout(() => {
-    console.log(globalThis.blah);
-}, 1000);
 
 //
 // The following are the callbacks that can be passed to createHook().
