@@ -25,9 +25,9 @@ asyncHook.enable();
 asyncLocalStorage.run(new Map(), async () => {
     globalThis.blah = asyncLocalStorage.getStore();
 
-    await Promise.resolve().then(() => {
-        // console.log("adfasdfasfd")
-        return fetch("https://httpbin.org/get").then(() => { });
+    return await Promise.resolve().then(() => {
+        console.log(performance.now())
+        return fetch("https://httpbin.org/get").then(() => { console.log(performance.now()) });
     })
 });
 
@@ -46,9 +46,9 @@ setTimeout(() => {
 // completed construction when this callback runs, therefore all fields of the
 // resource referenced by "asyncId" may not have been populated.
 function init(asyncId, type, triggerAsyncId, resource) {
-    if (type !== "PROMISE") {
-        return;
-    }
+    // if (type !== "PROMISE") {
+    //     return;
+    // }
 
     const asyncIdToTimestampsMap = asyncLocalStorage.getStore();
     asyncIdToTimestampsMap.set(asyncId, { startInstant: performance.now() });
@@ -77,11 +77,11 @@ function destroy(asyncId) {
 // `resolve` function passed to the `Promise` constructor is invoked
 // (either directly or through other means of resolving a promise).
 function promiseResolve(asyncId) {
-    console.log("Whaaa?"); //This should blow up the callstack per https://nodejs.org/api/async_hooks.html#printing-in-asynchook-callbacks but nothing is happening...
+    // console.log("Whaaa?"); //This should blow up the callstack per https://nodejs.org/api/async_hooks.html#printing-in-asynchook-callbacks but nothing is happening...
     const asyncIdToTimestampsMap = asyncLocalStorage.getStore();
     // const startInstant = asyncIdToTimestampsMap.get(asyncId)?.startInstant;
     // console.log(performance.now() - startInstant);
     if (asyncIdToTimestampsMap.get(asyncId)) {
-        asyncIdToTimestampsMap.get(asyncId).endInstant = performance.now(); //The numbers this is generating say the fetch is taking 3ms, which seems wrong...
+        asyncIdToTimestampsMap.get(asyncId).endInstant = performance.now(); //The numbers this is generating say the fetch is taking 3ms, which seems wrong...unless that's a different promise
     }
 }
